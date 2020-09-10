@@ -1,0 +1,125 @@
+---
+title: "Aviation Bio-Fuel Stock Sourcing"
+output: html_notebook
+---
+
+# Problem Statement
+
+A company that produces aircraft biofuel is planning a new product
+called FC (Fuel-Corn). Table 3.21 shows the total quarterly demand in
+tonnes (t) for the coming years as communicated by their customers.
+
+FC demand (T)
+
+Q1        Q2        Q3        Q4
+1,200     1,100     1,300     1,000
+
+Table 3.21: FC quarterly demand
+
+
+In Table 3.22 can be found the costs per tonne of Fuel and Corn for
+every two month period in the years to come.
+
+            B1  B2  B3 B4 B5  B6
+Fuel (ke/t) 2   2.5 2  1  1.5 3
+Corn (ke/t) 1.5 1   2  1  2   2.5
+Table 3.22: Costs of Fuel and Corn in bimonthly periods
+
+
+FC composition is obtained by mixing 35% of Fuel and 65% of Corn.
+The life of Fuel is of four consecutive months and the life of Corn, six
+(i.e., if we buy Fuel in early January, we cannot use it in early May).
+We just buy Fuel and Corn at the beginning of each two-month period
+and make the deliveries of FC at the beginning of each quarter. For
+simplicity, we assume that one can buy, mix and sell the same day.
+In addition, the plant manager has told us that in any two-month pe-
+riod, we cannot buy more Fuel than triple of Corn.
+
+# Problem Setup
+```{r}
+library(lpSolve)
+
+fuel_life <- 4
+corn_life <-6
+buy_cycle <- 2
+deliveries <- c(1200, 1100, 1300, 1000)
+required_fuel <- deliveries*0.65
+required_corn <- deliveries*0.35
+delivery_dates <- c(1,4,7,10)
+purchase_dates <- c(1,3,5,7,9,11)
+fuel_costs <- c(2,2.5,2,1,1.5,3)
+corn_costs <- c(1.5,1,2,1,2,2.5)
+```
+
+# First Delivery Constraints
+```{r}
+#Variables fuel purchases 1-6, corn purchases 1-6
+#Constraints
+# f1 f2 f3 f4 f5 f6 c1 c2 c3 c4 c5 c6
+first_delivery_fuel <- c(1,0,0,0,0,0,0,0,0,0,0,0)
+first_delivery_corn <- c(0,0,0,0,0,0,1,0,0,0,0,0)
+constr <- matrix(c(first_delivery_fuel, first_delivery_corn), ncol=12, byrow=TRUE)
+constr.dir <- c(">=", ">=")
+rhs <- c(required_fuel[1], required_corn[1])
+
+obj.fun <- c(fuel_costs, corn_costs)
+
+#Preview problem definition
+print(obj.fun)
+print(constr)
+print(constr.dir)
+print(rhs)
+```
+
+# Run Model To Optimize Parameters
+```{r}
+#solving model
+prod.sol <- lp("min", obj.fun , constr , constr.dir , rhs,compute.sens=TRUE)
+```
+
+# Verify Trivial Solution of First Shipment
+```{r}
+prod.sol$solution
+```
+
+## Additional Duality Check
+```{r}
+print("Minimized cost:")
+prod.sol
+#prod.sol$duals #includes duals of constraints and reduced costs of variables
+```
+
+## Add Constraints For Q2 Shipment
+```{r}
+second_delivery_fuel <- c(1,1,0,0,0,0,0,0,0,0,0,0)
+second_delivery_corn <- c(0,0,0,0,0,0,1,1,0,0,0,0)
+constr <- matrix(c(first_delivery_fuel, first_delivery_corn, second_delivery_fuel, second_delivery_corn), ncol=12, byrow=TRUE)
+constr.dir <- c(constr.dir, ">=", ">=")
+rhs <- c(rhs, required_fuel[1]+required_fuel[2], required_corn[1]+required_corn[2])
+print(obj.fun)
+print(constr)
+print(constr.dir)
+print(rhs)
+```
+
+# Reoptimize Solution
+```{r}
+#solving model
+prod.sol <- lp("min", obj.fun , constr , constr.dir , rhs, compute.sens=TRUE)
+```
+
+# Preview Updated Results
+```{r}
+prod.sol$solution
+print("Minimized cost:")
+prod.sol
+```
+
+## Third Quarter Constraints
+
+## Fourth Quarter Constraints
+
+
+## Addendum
+
+## Discount Constraints
