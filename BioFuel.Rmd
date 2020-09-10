@@ -90,8 +90,9 @@ prod.sol
 ```
 
 ## Add Constraints For Q2 Shipment
+Fuel from January will still be good for the Q2 shipment in April. Similarly, corn from January will also still be good. Thus the combined purchases from January and March must cover fuel and corn needs for both Q1 and Q2 shipments collectively.
 ```{r}
-second_delivery_fuel <- c(1,1,0,0,0,0,0,0,0,0,0,0)
+second_delivery_fuel <- c(1,1,0,0,0,0,0,0,0,0,0,0) 
 second_delivery_corn <- c(0,0,0,0,0,0,1,1,0,0,0,0)
 constr <- matrix(c(first_delivery_fuel, first_delivery_corn, second_delivery_fuel, second_delivery_corn), ncol=12, byrow=TRUE)
 constr.dir <- c(constr.dir, ">=", ">=")
@@ -116,6 +117,10 @@ prod.sol
 ```
 
 ## Third Quarter Constraints
+
+```{r}
+
+```
 
 ## Fourth Quarter Constraints
 
