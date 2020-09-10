@@ -96,6 +96,9 @@ prod.sol
 ## No More then triple fuel then corn
 ```{r}
 january_constraint <- c(1,0,0,0,0,0,-3,0,0,0,0,0)
+constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
+                   january_constraint
+                   ), ncol=12, byrow=TRUE)
 contr.dir <- c(constr.dir,">=")
 rhs  <- c(rhs, 0)
 
@@ -117,7 +120,10 @@ Fuel from January will still be good for the Q2 shipment in April. Similarly, co
 ```{r}
 second_delivery_fuel <- c(1,1,0,0,0,0,0,0,0,0,0,0) 
 second_delivery_corn <- c(0,0,0,0,0,0,1,1,0,0,0,0)
-constr <- matrix(c(first_delivery_fuel, first_delivery_corn, second_delivery_fuel, second_delivery_corn), ncol=12, byrow=TRUE)
+constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
+                   january_constraint,
+                   second_delivery_fuel, second_delivery_corn
+                   ), ncol=12, byrow=TRUE)
 constr.dir <- c(constr.dir, ">=", ">=")
 rhs <- c(rhs, required_fuel[1]+required_fuel[2], required_corn[1]+required_corn[2])
 print(obj.fun)
@@ -145,14 +151,15 @@ Only fuel purchased in May or July will be good for the Q3 shipment (fuel purcha
 ```{r}
 #JanFuel,MarchFuel,MayFuel,JulyFuel,SeptFuel,NovFuel,JanCorn,MarchCorn,MayCorn,JulyCorn,SeptCorn,NovCorn
 third_delivery_fuel <- c(0,0,1,1,0,0,0,0,0,0,0,0) 
-third_delivery_corn <- c(0,0,0,0,0,0,0,1,1,1,0,0)
+third_delivery_corn_p1 <- c(0,0,0,0,0,0,0,1,1,1,0,0)
+third_delivery_corn_p1 <- c(0,0,0,0,0,0,1,1,1,1,0,0)
 constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
                    second_delivery_fuel, second_delivery_corn,
-                   third_delivery_fuel, third_delivery_corn
+                   third_delivery_fuel, third_delivery_cornp1, third_delivery_corn_p2
                    ),
                  ncol=12, byrow=TRUE)
-constr.dir <- c(constr.dir, ">=", ">=")
-rhs <- c(rhs, required_fuel[3], required_corn[2]+required_corn[3])
+constr.dir <- c(constr.dir, ">=", ">=", ">=")
+rhs <- c(rhs, required_fuel[3], required_corn[2]+required_corn[3], required_corn[1]+required_corn[2]+required_corn[3])
 print(obj.fun)
 print(constr)
 print(constr.dir)
