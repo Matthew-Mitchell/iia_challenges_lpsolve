@@ -17,13 +17,15 @@ $s_i$ : leftover stock each month
 
 #### Objective Function:
 
-Min $z = \sum_{i=1}^{6}3s_i+7o_i$
+Min $z = \sum_{i=1}^{6}3s_i+7o_i+2p_i$
 
 #### Constraints
 
 $d_i$ : the required demand each month
 
-$s_{i-1}+p_i+o_i-s_i \geq d_i$
+$s_{i-1}+p_i+o_i-s_i = d_i$
+
+* **Q:** Why is this an equality and not an inequality like previous examples we discussed?
 
 $s_i,p_i,o_i \geq 0$
 
