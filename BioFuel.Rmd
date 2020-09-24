@@ -43,8 +43,8 @@ fuel_life <- 4
 corn_life <-6
 buy_cycle <- 2
 deliveries <- c(1200, 1100, 1300, 1000)
-required_fuel <- deliveries*0.65
-required_corn <- deliveries*0.35
+required_fuel <- deliveries*0.35
+required_corn <- deliveries*0.65
 delivery_dates <- c(1,4,7,10)
 purchase_dates <- c(1,3,5,7,9,11)
 fuel_costs <- c(2,2.5,2,1,1.5,3)
@@ -94,12 +94,17 @@ prod.sol
 ```
 
 ## No More then triple fuel then corn
+Example:
+700 fuel and 200 corn violates the principle
+1*700 -3*200 <= 0
+700 - 600 <= 0
+100 <= 0 #False; verifying that the principle has been violated
 ```{r}
 january_constraint <- c(1,0,0,0,0,0,-3,0,0,0,0,0)
 constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
                    january_constraint
                    ), ncol=12, byrow=TRUE)
-constr.dir <- c(">=",">=",">=")
+constr.dir <- c(">=",">=","<=")
 rhs  <- c(required_fuel[1], required_corn[1], 0)
 
 #Preview problem definition
@@ -114,6 +119,9 @@ prod.sol <- lp("min", obj.fun , constr , constr.dir , rhs,compute.sens=TRUE)
 print("Minimized cost:")
 prod.sol
 ```
+```{r}
+prod.sol$solution
+```
 
 ## Add Constraints For Q2 Shipment
 Fuel from January will still be good for the Q2 shipment in April. Similarly, corn from January will also still be good. Thus the combined purchases from January and March must cover fuel and corn needs for both Q1 and Q2 shipments collectively.
@@ -125,7 +133,7 @@ constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
                    january_constraint, march_constraint,
                    second_delivery_fuel, second_delivery_corn
                    ), ncol=12, byrow=TRUE)
-constr.dir <- c(">=", ">=", ">=", ">=", ">=", ">=")
+constr.dir <- c(">=", ">=", "<=", "<=", ">=", ">=")
 rhs <- c(required_fuel[1], required_corn[1],
          0,0,
          required_fuel[1]+required_fuel[2], required_corn[1]+required_corn[2]
@@ -173,9 +181,9 @@ constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
                    ),
                  ncol=12, byrow=TRUE)
 constr.dir <- c(">=", ">=",
+                "<=", "<=",
                 ">=", ">=",
-                ">=", ">=",
-                ">=", ">=",
+                "<=", "<=",
                 ">=", ">=", ">=")
 rhs <- c(required_fuel[1], required_corn[1],
          0,0,
@@ -187,6 +195,7 @@ print(constr)
 print(constr.dir)
 print(rhs)
 ```
+
 
 # Reoptimize Solution
 ```{r}
@@ -203,10 +212,75 @@ prod.sol
 
 ## Fourth Quarter Constraints
 
+Quarter 4 delivery is set for early October. Therefore Fuel from July and September will be usable. Corn oil from May,July and September will be usable.
+```{r}
+
+fourth_delivery_fuel_p1 <- c(0,0,1,1,1,0,
+                         0,0,0,0,0,0)
+fourth_delivery_fuel_p2 <- c(0,0,0,1,1,0,
+                         0,0,0,0,0,0) 
+fourth_delivery_corn_p1 <- c(0,0,0,0,0,0,
+                            0,0,1,1,1,0)
+fourth_delivery_corn_p2 <- c(0,0,0,0,0,0,
+                            1,1,1,1,1,0)
+september_constraint <- c(0,0,0,0,1,0,
+                    0,0,0,0,-3,0)
+
+
+
+constr <- matrix(c(first_delivery_fuel, first_delivery_corn,
+                   january_constraint, march_constraint,
+                   second_delivery_fuel, second_delivery_corn,
+                   may_constraint, july_constraint,
+                   third_delivery_fuel, third_delivery_corn_p1, third_delivery_corn_p2,
+                   fourth_delivery_fuel_p1, fourth_delivery_fuel_p2, fourth_delivery_corn_p1, fourth_delivery_corn_p2,
+                   september_constraint
+                   ),
+                 ncol=12, byrow=TRUE)
+constr.dir <- c(">=", ">=",
+                "<=", "<=",
+                ">=", ">=",
+                "<=", "<=",
+                ">=", ">=", ">=",
+                ">=", ">=", ">=", ">=",
+                "<=")
+rhs <- c(required_fuel[1], required_corn[1],
+         0,0,
+         required_fuel[1]+required_fuel[2], required_corn[1]+required_corn[2],
+         0,0,
+         required_fuel[3], required_corn[2]+required_corn[3], required_corn[1]+required_corn[2]+required_corn[3],
+         required_fuel[4], required_fuel[3]+required_fuel[4], required_corn[4],required_corn[1]+required_corn[2]+required_corn[3]+required_corn[4],
+         0)
+```
+
+```{r}
+print(obj.fun)
+print(constr)
+print(constr.dir)
+print(rhs)
+```
+
+```{r}
+prod.sol <- lp("min", obj.fun , constr , constr.dir , rhs, compute.sens=TRUE)
+```
+
+```{r}
+prod.sol$solution
+```
+```{r}
+prod.sol
+```
 
 ## Addendum
 
-
+#Shiny App Development: Slicing and Choosing Constraints
+```{r}
+row_numbers = c(1,2,5,6)
+typeof(row_numbers)
+constr[c(1,5,10,11),]
+constr.dir[c(1,2,3,4,9,10,11)]
+rhs[c(1,2,9,10,11)]
+```
 
 
 ## Discount Constraints
